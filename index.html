@@ -47,4 +47,68 @@
             font-size: 14px;
         }
     }
-</st
+</style>
+</head>
+<body>
+<h1>Live Stock Dashboard</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Price</th>
+            <th>Change</th>
+            <th>% Change</th>
+        </tr>
+    </thead>
+    <tbody id="stocks-body">
+        <!-- Stock rows will be injected here -->
+    </tbody>
+</table>
+
+<script>
+// List of tickers
+const tickers = ["OPEN","PLTR","NYA","NFLX","RUT","NVDA","HSI","TSLA","DAX","META","UKX","GOOGL","DJI","AMZN","NDX","MSFT","SPX","AAPL"];
+
+// Function to fetch stock data from Yahoo Finance
+async function fetchStockData() {
+    const symbols = tickers.join(',');
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const results = data.quoteResponse.result;
+
+        const tbody = document.getElementById('stocks-body');
+        tbody.innerHTML = ''; // Clear previous data
+
+        results.forEach(stock => {
+            const price = stock.regularMarketPrice?.toFixed(2) || '-';
+            const change = stock.regularMarketChange?.toFixed(2) || '-';
+            const percent = stock.regularMarketChangePercent?.toFixed(2) || '-';
+
+            const changeClass = (change >= 0) ? 'up' : 'down';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${stock.symbol}</td>
+                <td>${price}</td>
+                <td class="${changeClass}">${change}</td>
+                <td class="${changeClass}">${percent}%</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error("Error fetching stock data:", error);
+    }
+}
+
+// Initial fetch
+fetchStockData();
+
+// Update every 5 seconds
+setInterval(fetchStockData, 5000);
+</script>
+</body>
+</html>
