@@ -10,22 +10,30 @@
         color: #333;
         margin: 0;
         padding: 20px;
+        transition: background 0.3s, color 0.3s;
     }
     h1 {
         text-align: center;
         margin-bottom: 20px;
     }
+    #darkModeToggle {
+        display: block;
+        margin: 0 auto 20px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 16px;
+    }
     table {
         width: 100%;
         border-collapse: collapse;
         margin: auto;
-        max-width: 1200px;
+        max-width: 1600px;
     }
     th, td {
-        padding: 12px 15px;
+        padding: 15px 20px;
         text-align: center;
         border-bottom: 1px solid #ddd;
-        font-size: 16px;
+        font-size: 18px;
     }
     th {
         background-color: #333;
@@ -42,15 +50,22 @@
         color: red;
         font-weight: bold;
     }
-    @media(max-width: 768px){
-        table, th, td {
-            font-size: 14px;
-        }
+    /* Dark mode styles */
+    body.dark {
+        background: #121212;
+        color: #f4f4f4;
+    }
+    body.dark th {
+        background-color: #222;
+    }
+    body.dark tr:hover {
+        background-color: #1a1a1a;
     }
 </style>
 </head>
 <body>
 <h1>Live Stock Dashboard</h1>
+<button id="darkModeToggle">Toggle Dark Mode</button>
 <table>
     <thead>
         <tr>
@@ -69,7 +84,13 @@
 // List of tickers
 const tickers = ["OPEN","PLTR","NYA","NFLX","RUT","NVDA","HSI","TSLA","DAX","META","UKX","GOOGL","DJI","AMZN","NDX","MSFT","SPX","AAPL"];
 
-// Function to fetch stock data from Yahoo Finance
+// Dark mode toggle
+const darkToggle = document.getElementById('darkModeToggle');
+darkToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+});
+
+// Fetch stock data from Yahoo Finance
 async function fetchStockData() {
     const symbols = tickers.join(',');
     const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
@@ -79,6 +100,9 @@ async function fetchStockData() {
         const data = await response.json();
         const results = data.quoteResponse.result;
 
+        // Sort by absolute % change descending
+        results.sort((a, b) => Math.abs(b.regularMarketChangePercent) - Math.abs(a.regularMarketChangePercent));
+
         const tbody = document.getElementById('stocks-body');
         tbody.innerHTML = ''; // Clear previous data
 
@@ -86,7 +110,6 @@ async function fetchStockData() {
             const price = stock.regularMarketPrice?.toFixed(2) || '-';
             const change = stock.regularMarketChange?.toFixed(2) || '-';
             const percent = stock.regularMarketChangePercent?.toFixed(2) || '-';
-
             const changeClass = (change >= 0) ? 'up' : 'down';
 
             const row = document.createElement('tr');
@@ -107,8 +130,8 @@ async function fetchStockData() {
 // Initial fetch
 fetchStockData();
 
-// Update every 5 seconds
-setInterval(fetchStockData, 5000);
+// Update every 1 second
+setInterval(fetchStockData, 1000);
 </script>
 </body>
 </html>
